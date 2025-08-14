@@ -32,17 +32,18 @@ if plot_type == "Heatmap":
     filtered_df["VRDL+Date"] = filtered_df["VRDL Name"] + " (" + filtered_df["Date of collection"].dt.strftime("%d-%m-%Y") + ")"
     pivot = filtered_df.pivot_table(index="Target", columns="VRDL+Date", values=value_type, aggfunc="mean", fill_value=0)
     fig = px.imshow(pivot, text_auto=".1f", aspect="auto", color_continuous_scale="Viridis")
+    fig.update_layout(width=1400, height=800)
     st.plotly_chart(fig, use_container_width=True)
 
 elif plot_type == "Bar Plot":
     bar_df = filtered_df.copy()
     bar_df["Date"] = bar_df["Date of collection"].dt.strftime("%d-%m-%Y")
-    fig = px.bar(bar_df, x="Target", y=value_type, color="VRDL Name", facet_col="Date", barmode="group")
+    fig = px.bar(bar_df, x="Target", y=value_type, color="VRDL Name", facet_col="Date", barmode="group", height=800, width=1400)
     st.plotly_chart(fig, use_container_width=True)
 
 elif plot_type == "Line Plot":
     line_df = filtered_df.groupby(["Date of collection", "Target"])[value_type].mean().reset_index()
-    fig = px.line(line_df, x="Date of collection", y=value_type, color="Target", markers=True)
+    fig = px.line(line_df, x="Date of collection", y=value_type, color="Target", markers=True, height = 800, width = 1400)
     st.plotly_chart(fig, use_container_width=True)
 
 # Optionally show data table
