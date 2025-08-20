@@ -43,6 +43,7 @@ def load_data():
     df["Avg Cq"] = pd.to_numeric(df["Avg Cq"], errors='coerce').fillna(40)
     df["log Copy Number"] = df["Copy Number"].apply(lambda x: np.log10(x) if x > 0 else 0)
     df["Target"] = df["Target"].str.lower().map(TARGET_RENAME).fillna(df["Target"]) # Rename targets
+    df["VRDL ID"] = "VRDL_" + df["VRDL ID"].astype(str)
     return df
 
 df = load_data()
@@ -50,7 +51,7 @@ df = load_data()
 # Sidebar filters
 
 # --- VRDL Select with dynamic "Select All" logic ---
-vrdl_values = sorted(df["VRDL Name"].dropna().unique().tolist())
+vrdl_values = sorted(df["VRDL ID"].dropna().unique().tolist())
 selected_vrdls = st.sidebar.multiselect("Select VRDL(s)", options = ["Select All"] + vrdl_values, default=["Select All"])
 
 if "Select All" in selected_vrdls and len(selected_vrdls) > 1:
@@ -97,7 +98,7 @@ value_type = st.sidebar.selectbox("Value", value_options, key="value_type")
 
 
 # Filter data based on selections
-filtered_df = df[(df["VRDL Name"].isin(selected_vrdls)) &
+filtered_df = df[(df["VRDL ID"].isin(selected_vrdls)) &
                  (df["Date of collection"].dt.strftime("%d-%m-%Y").isin(selected_dates)) &
                  (df["Target"].isin(selected_targets))]
 
@@ -106,7 +107,7 @@ st.markdown("<div class='section-title'>📊 Visualizations</div>", unsafe_allow
 
 
 if plot_type == "Heatmap":
-    filtered_df["VRDL+Date"] = filtered_df["VRDL Name"] + " (" + filtered_df["Date of collection"].dt.strftime("%d-%m-%Y") + ")"
+    filtered_df["VRDL+Date"] = filtered_df["VRDL ID"] + " (" + filtered_df["Date of collection"].dt.strftime("%d-%m-%Y") + ")"
     pivot = filtered_df.pivot_table(index="Target", columns="VRDL+Date", values=value_type, aggfunc="mean", fill_value=0)
 
     # Scale data for clustering
@@ -163,7 +164,7 @@ elif plot_type == "Bar Plot":
         x = "Target",
         y = value_type,
         color = "Date",
-        facet_col = "VRDL Name",
+        facet_col = "VRDL ID",
         barmode = "group",
         error_y = error_y_col,
         height = 800,
